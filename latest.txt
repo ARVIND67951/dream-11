@@ -1,0 +1,603 @@
+!function(e, t) {
+    "object" == typeof exports && "object" == typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define([], t) : "object" == typeof exports ? exports["d11-data"] = t() : e.D11Data = t()
+}(window, (function() {
+    return function(e) {
+        var t = {};
+        function r(n) {
+            if (t[n])
+                return t[n].exports;
+            var o = t[n] = {
+                i: n,
+                l: !1,
+                exports: {}
+            };
+            return e[n].call(o.exports, o, o.exports, r),
+            o.l = !0,
+            o.exports
+        }
+        return r.m = e,
+        r.c = t,
+        r.d = function(e, t, n) {
+            r.o(e, t) || Object.defineProperty(e, t, {
+                enumerable: !0,
+                get: n
+            })
+        }
+        ,
+        r.r = function(e) {
+            "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, {
+                value: "Module"
+            }),
+            Object.defineProperty(e, "__esModule", {
+                value: !0
+            })
+        }
+        ,
+        r.t = function(e, t) {
+            if (1 & t && (e = r(e)),
+            8 & t)
+                return e;
+            if (4 & t && "object" == typeof e && e && e.__esModule)
+                return e;
+            var n = Object.create(null);
+            if (r.r(n),
+            Object.defineProperty(n, "default", {
+                enumerable: !0,
+                value: e
+            }),
+            2 & t && "string" != typeof e)
+                for (var o in e)
+                    r.d(n, o, function(t) {
+                        return e[t]
+                    }
+                    .bind(null, o));
+            return n
+        }
+        ,
+        r.n = function(e) {
+            var t = e && e.__esModule ? function() {
+                return e.default
+            }
+            : function() {
+                return e
+            }
+            ;
+            return r.d(t, "a", t),
+            t
+        }
+        ,
+        r.o = function(e, t) {
+            return Object.prototype.hasOwnProperty.call(e, t)
+        }
+        ,
+        r.p = "",
+        r(r.s = 5)
+    }([function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        }),
+        t.config = {
+            mode: "production",
+            devtool: "none",
+            endpoint: "https://d11-pwa-datahighway.dream11.com/process",
+            maxQueueLength: 10,
+            config: "src/webpack.config.ts"
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        });
+        var n = r(2)
+          , o = r(10);
+        t.MAX_SESSION_LENGTH_IN_MINS = 30;
+        var a = r(3);
+        t.localStorageKeys = ["utm_medium", "utm_source", "utm_content", "utm_campaign", "utm_term", "utm_ref"],
+        t.saveUTMParameters = function(e, t, r) {
+            var n = e.search.replace(/\?/, "");
+            return i(n, t, r)
+        }
+        ;
+        var i = function(e, t, r) {
+            var n = o.parseQueryString(e);
+            return r.map((function(e) {
+                n[e] && t.setItem("dh_" + e, n[e])
+            }
+            )),
+            n
+        };
+        t.getUTMParameters = function(e, t) {
+            return e.reduce((function(e, r) {
+                var n = "dh_" + r
+                  , o = t.getItem(n);
+                return o && (e[r] = o),
+                e
+            }
+            ), {})
+        }
+        ,
+        t.isValidSession = function(e, t) {
+            var r = e.getItem("dh_session_timestamp");
+            return !r || u(parseInt(r, 10), t)
+        }
+        ;
+        var u = function(e, r) {
+            var n = a.getDate(e);
+            return r.getDate() === n.getDate() && !((r.getTime() - e) / 1e3 / 60 > t.MAX_SESSION_LENGTH_IN_MINS)
+        };
+        t.updateSessionTimestamp = function(e, t) {
+            e.setItem("dh_session_timestamp", t)
+        }
+        ,
+        t.getSessionId = function(e) {
+            var t = e.getItem("dh_session_id");
+            if (t)
+                return t;
+            var r = n();
+            return e.setItem("dh_session_id", r),
+            r
+        }
+        ,
+        t.clearSessionParameters = function(e, t) {
+            e.forEach((function(e) {
+                t.removeItem("dh_" + e)
+            }
+            )),
+            t.removeItem("dh_session_id")
+        }
+    }
+    , function(e, t, r) {
+        var n, o, a = r(8), i = r(9), u = 0, s = 0;
+        e.exports = function(e, t, r) {
+            var c = t && r || 0
+              , d = t || []
+              , l = (e = e || {}).node || n
+              , f = void 0 !== e.clockseq ? e.clockseq : o;
+            if (null == l || null == f) {
+                var p = a();
+                null == l && (l = n = [1 | p[0], p[1], p[2], p[3], p[4], p[5]]),
+                null == f && (f = o = 16383 & (p[6] << 8 | p[7]))
+            }
+            var g = void 0 !== e.msecs ? e.msecs : (new Date).getTime()
+              , m = void 0 !== e.nsecs ? e.nsecs : s + 1
+              , v = g - u + (m - s) / 1e4;
+            if (v < 0 && void 0 === e.clockseq && (f = f + 1 & 16383),
+            (v < 0 || g > u) && void 0 === e.nsecs && (m = 0),
+            m >= 1e4)
+                throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+            u = g,
+            s = m,
+            o = f;
+            var _ = (1e4 * (268435455 & (g += 122192928e5)) + m) % 4294967296;
+            d[c++] = _ >>> 24 & 255,
+            d[c++] = _ >>> 16 & 255,
+            d[c++] = _ >>> 8 & 255,
+            d[c++] = 255 & _;
+            var y = g / 4294967296 * 1e4 & 268435455;
+            d[c++] = y >>> 8 & 255,
+            d[c++] = 255 & y,
+            d[c++] = y >>> 24 & 15 | 16,
+            d[c++] = y >>> 16 & 255,
+            d[c++] = f >>> 8 | 128,
+            d[c++] = 255 & f;
+            for (var w = 0; w < 6; ++w)
+                d[c + w] = l[w];
+            return t || i(d)
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        }),
+        t.getCurrentDate = function() {
+            return new Date
+        }
+        ,
+        t.getDate = function(e) {
+            return new Date(e)
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        }),
+        t.pushToQueue = function(e, t) {
+            return e.items.push(t),
+            e
+        }
+        ,
+        t.clearQueue = function(e) {
+            return {
+                items: []
+            }
+        }
+        ,
+        t.queueLength = function(e) {
+            return e.items.length
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        });
+        var n = r(0)
+          , o = r(6)
+          , a = r(4)
+          , i = r(12)
+          , u = r(1)
+          , s = r(13)
+          , c = r(3)
+          , d = r(14)
+          , l = n.config.maxQueueLength
+          , f = {
+            items: []
+        }
+          , p = {
+            appName: ""
+        }
+          , g = {
+            init: function(e) {
+                p.appName = e.appName
+            },
+            track: function(e, t) {
+                u.isValidSession(d.storage, c.getCurrentDate()) || u.clearSessionParameters(u.localStorageKeys, d.storage);
+                var r = c.getCurrentDate().getTime();
+                u.updateSessionTimestamp(d.storage, r.toString());
+                var n = o.getEvent(e, t, r, p, u.localStorageKeys, window, d.storage, s.cookieUtil, document);
+                f = a.pushToQueue(f, n),
+                a.queueLength(f) >= l && (f = i.sendEvents(f, p.appName))
+            }
+        };
+        window.addEventListener("unload", (function() {
+            f = i.sendEvents(f, p.appName)
+        }
+        )),
+        window.setInterval((function() {
+            f = i.sendEvents(f, p.appName)
+        }
+        ), 3e3);
+        try {
+            u.isValidSession(d.storage, c.getCurrentDate()) || u.clearSessionParameters(u.localStorageKeys, d.storage)
+        } catch (e) {
+            window.newrelic && window.newrelic.noticeError(e),
+            window.newrelic && window.newrelic.addPageAction("Error-During-Checking-DH-Session", {
+                name: e.name,
+                message: e.message,
+                stack: e.stack
+            })
+        }
+        try {
+            u.saveUTMParameters(window.location, d.storage, u.localStorageKeys)
+        } catch (e) {
+            window.newrelic && window.newrelic.noticeError(e),
+            window.newrelic && window.newrelic.addPageAction("Error-During-SaveCommonParameters", {
+                name: e.name,
+                message: e.message,
+                stack: e.stack
+            })
+        }
+        try {
+            !function(e) {
+                e.D11DataQueue && (e.D11DataQueue.forEach((function(e) {
+                    g[e.method].apply(g, e.args)
+                }
+                )),
+                e.D11DataQueue = null)
+            }(window)
+        } catch (e) {
+            window.newrelic && window.newrelic.noticeError(e),
+            window.newrelic && window.newrelic.addPageAction("Error-During-ProcessInitialQueue", {
+                name: e.name,
+                message: e.message,
+                stack: e.stack
+            })
+        }
+        t.default = g
+    }
+    , function(e, t, r) {
+        "use strict";
+        var n = this && this.__assign || function() {
+            return (n = Object.assign || function(e) {
+                for (var t, r = 1, n = arguments.length; r < n; r++)
+                    for (var o in t = arguments[r])
+                        Object.prototype.hasOwnProperty.call(t, o) && (e[o] = t[o]);
+                return e
+            }
+            ).apply(this, arguments)
+        }
+        ;
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        });
+        var o = r(7)
+          , a = r(1)
+          , i = r(11);
+        t.getEvent = function(e, t, r, u, s, c, d, l, f) {
+            var p = i.getId(d, l, f)
+              , g = a.getSessionId(d)
+              , m = o.getCurrentUrl(c)
+              , v = a.getUTMParameters(s, d)
+              , _ = o.getResolution(c)
+              , y = o.getUserAgent(c)
+              , w = o.getReferrer(f);
+            return {
+                eventName: e,
+                props: n(n(n({}, v), t), {
+                    app_name: u.appName,
+                    eventTime: r,
+                    user_agent: y,
+                    screen_resolution: _,
+                    dh_web_id: p,
+                    dh_session_id: g,
+                    current_page_url: m,
+                    referrer: w
+                })
+            }
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        }),
+        t.getResolution = function(e) {
+            return e.screen.availWidth + "x" + e.screen.availHeight
+        }
+        ,
+        t.getUserAgent = function(e) {
+            return e.navigator.userAgent
+        }
+        ,
+        t.getCurrentUrl = function(e) {
+            return e.location.href
+        }
+        ,
+        t.getReferrer = function(e) {
+            return e.referrer
+        }
+    }
+    , function(e, t) {
+        var r = "undefined" != typeof crypto && crypto.getRandomValues && crypto.getRandomValues.bind(crypto) || "undefined" != typeof msCrypto && "function" == typeof window.msCrypto.getRandomValues && msCrypto.getRandomValues.bind(msCrypto);
+        if (r) {
+            var n = new Uint8Array(16);
+            e.exports = function() {
+                return r(n),
+                n
+            }
+        } else {
+            var o = new Array(16);
+            e.exports = function() {
+                for (var e, t = 0; t < 16; t++)
+                    0 == (3 & t) && (e = 4294967296 * Math.random()),
+                    o[t] = e >>> ((3 & t) << 3) & 255;
+                return o
+            }
+        }
+    }
+    , function(e, t) {
+        for (var r = [], n = 0; n < 256; ++n)
+            r[n] = (n + 256).toString(16).substr(1);
+        e.exports = function(e, t) {
+            var n = t || 0
+              , o = r;
+            return [o[e[n++]], o[e[n++]], o[e[n++]], o[e[n++]], "-", o[e[n++]], o[e[n++]], "-", o[e[n++]], o[e[n++]], "-", o[e[n++]], o[e[n++]], "-", o[e[n++]], o[e[n++]], o[e[n++]], o[e[n++]], o[e[n++]], o[e[n++]]].join("")
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        }),
+        t.parseQueryString = function(e) {
+            return e ? e.split("&").reduce((function(e, t) {
+                var r = t.split("=");
+                return e[r[0]] = r[1],
+                e
+            }
+            ), {}) : {}
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        });
+        var n = r(2);
+        t.getId = function(e, t, r) {
+            var o = e.getItem("dh_user_id")
+              , a = t.getValuesFromCookie(r.cookie, ["dh_user_id"]).dh_user_id;
+            if (a)
+                return a;
+            if (o) {
+                var i = new Date((new Date).getTime() + 31536e8).toUTCString();
+                return r.cookie = t.createCookieValue({
+                    key: "dh_user_id",
+                    value: o
+                }, {
+                    expires: i,
+                    path: "/"
+                }),
+                o
+            }
+            i = new Date((new Date).getTime() + 31536e8).toUTCString();
+            var u = n();
+            return r.cookie = t.createCookieValue({
+                key: "dh_user_id",
+                value: u
+            }, {
+                expires: i,
+                path: "/"
+            }),
+            e.setItem("dh_user_id", u),
+            u
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        });
+        var n = r(0)
+          , o = r(4);
+        t.sendEvents = function(e, t) {
+            if (0 === e.items.length)
+                return e;
+            if (!t)
+                throw new Error("appName is not set. Please call D11Data.init with appName before calling track. ");
+            var r = n.config.endpoint
+              , i = a(e);
+            return fetch(r, {
+                method: "POST",
+                headers: {
+                    app_name: t,
+                    "Content-Type": "application/json"
+                },
+                body: i
+            }),
+            e = o.clearQueue(e)
+        }
+        ;
+        var a = function(e) {
+            var t = {
+                batch: e.items
+            };
+            return JSON.stringify(t)
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        var n = this && this.__assign || function() {
+            return (n = Object.assign || function(e) {
+                for (var t, r = 1, n = arguments.length; r < n; r++)
+                    for (var o in t = arguments[r])
+                        Object.prototype.hasOwnProperty.call(t, o) && (e[o] = t[o]);
+                return e
+            }
+            ).apply(this, arguments)
+        }
+        ;
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        }),
+        t.parseCookies = function(e) {
+            return e ? e.split(";").map((function(e) {
+                return e.trim().split("=")
+            }
+            )).reduce((function(e, t) {
+                var r;
+                return n(n({}, e), ((r = {})[t[0]] = t[1],
+                r))
+            }
+            ), {}) : {}
+        }
+        ,
+        t.getValuesFromCookie = function(e, r) {
+            var n = t.parseCookies(e);
+            return r.reduce((function(e, t) {
+                return n[t] && (e[t] = n[t]),
+                e
+            }
+            ), {})
+        }
+        ,
+        t.createCookieValue = function(e, t) {
+            return void 0 === t && (t = {}),
+            e.key + "=" + e.value + ";" + Object.keys(t).reduce((function(e, r) {
+                return e += r + "=" + t[r] + ";"
+            }
+            ), "")
+        }
+        ,
+        t.cookieUtil = {
+            parseCookies: t.parseCookies,
+            getValuesFromCookie: t.getValuesFromCookie,
+            createCookieValue: t.createCookieValue
+        }
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        });
+        var n = r(15)
+          , o = function() {
+            function e() {
+                this._data = {}
+            }
+            return e.prototype.clear = function() {
+                this._data = {}
+            }
+            ,
+            e.prototype.getItem = function(e) {
+                return this._data.hasOwnProperty(e) ? this._data[e] : null
+            }
+            ,
+            e.prototype.key = function(e) {
+                return Object.keys(this._data)[e]
+            }
+            ,
+            e.prototype.removeItem = function(e) {
+                delete this._data[e]
+            }
+            ,
+            e.prototype.setItem = function(e, t) {
+                this._data[e] = String(t)
+            }
+            ,
+            Object.defineProperty(e.prototype, "length", {
+                get: function() {
+                    return Object.keys(this._data).length
+                },
+                enumerable: !0,
+                configurable: !0
+            }),
+            e
+        }();
+        t.MemoryStorage = o;
+        var a = function() {
+            return new o
+        };
+        t.hasStorage = function() {
+            try {
+                return window.localStorage.setItem("test", "test"),
+                window.localStorage.getItem("test"),
+                window.localStorage.removeItem("test"),
+                !0
+            } catch (e) {
+                return !1
+            }
+        }
+        ,
+        t.hasStorageMemoized = n.once(t.hasStorage),
+        t.getStorage = function() {
+            try {
+                return t.hasStorageMemoized() ? window.localStorage : a()
+            } catch (e) {
+                return a()
+            }
+        }
+        ,
+        t.storage = t.getStorage()
+    }
+    , function(e, t, r) {
+        "use strict";
+        Object.defineProperty(t, "__esModule", {
+            value: !0
+        }),
+        t.once = function(e) {
+            var t = void 0;
+            return function() {
+                for (var r = [], n = 0; n < arguments.length; n++)
+                    r[n] = arguments[n];
+                return void 0 !== t ? t : t = e.apply(void 0, r)
+            }
+        }
+    }
+    ]).default
+}
+));
